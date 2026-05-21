@@ -1,16 +1,153 @@
-# my_daily_expense
+# My Daily Expense
 
-A new Flutter project.
+A modern Flutter application for tracking daily income and expenses with a clean and user-friendly UI.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
+- 📊 Track daily transactions
+- 💰 Income & expense management
+- 🗂 Expense categories
+- 📅 Transaction history
+- 🔍 Beautiful and responsive UI
+- 🎨 Modern finance app design
+- 🔥 Firebase Firestore integration
+- ⚡ State management using Provider
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📱 Screenshots
+
+- Dashboard
+- Recent Transactions
+- Add Transaction Dialog
+- Expense Categories
+
+---
+
+## 🛠 Tech Stack
+
+- Flutter
+- Dart
+- Provider
+- Firebase
+- Cloud Firestore
+- Intl
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Flutter SDK
+- Dart SDK
+- Firebase Project
+
+---
+
+## 📦 Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/my_daily_expense.git
+```
+
+Go to project folder:
+
+```bash
+cd my_daily_expense
+```
+
+Install dependencies:
+
+```bash
+flutter pub get
+```
+
+---
+
+## 🔥 Firebase Setup
+
+Install FlutterFire CLI:
+
+```bash
+dart pub global activate flutterfire_cli
+```
+
+Configure Firebase:
+
+```bash
+flutterfire configure
+```
+
+Run the app:
+
+```bash
+flutter run
+```
+
+---
+
+## 📁 Project Structure
+
+```text
+lib/
+├── controller/
+├── model/
+├── views/
+├── util/
+├── components/
+├── app.dart
+└── main.dart
+```
+
+---
+
+## 📚 Dependencies
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+
+  provider:
+  firebase_core:
+  cloud_firestore:
+  intl:
+```
+
+---
+
+## 💡 Features Overview
+
+### Add Transaction
+
+Users can add:
+
+- Expense
+- Income
+
+Example:
+
+- `-50` → Expense
+- `+1000` → Income
+
+---
+
+### Expense Categories
+
+- Food & Drinks
+- Transportation
+- Shopping
+- Salary
+- Entertainment
+
+---
+
+Phyo Thandar
+
+Flutter Mobile & Web Developer
+
