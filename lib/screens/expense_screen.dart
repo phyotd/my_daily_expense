@@ -23,7 +23,12 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         title: const Text('My Daily Expense'),
         backgroundColor: Colors.white,
         centerTitle: true,
-        leading: IconButton(onPressed: () {Navigator.of(context).pop();}, icon: const Icon(Icons.arrow_back_ios_new)),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: const Icon(Icons.arrow_back_ios_new),
+        ),
       ),
       body: Consumer<ExpenseController>(
         builder: (context, expenseController, child) {
@@ -34,9 +39,14 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               itemCount: expenses.length,
               itemBuilder: (context, index) {
                 final expense = expenses[index];
-                return TransactionRowItem(
-                  expense: expense,
-                  onDelete: () => expenseController.removeExpense(expense),
+                return GestureDetector(
+                  onTap: () {
+                    showAddExpenseDialog(context, expense: expense);
+                  },
+                  child: TransactionRowItem(
+                    expense: expense,
+                    onDelete: () => expenseController.removeExpense(expense),
+                  ),
                 );
               },
               separatorBuilder: (BuildContext context, int index) {
@@ -58,17 +68,23 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           'New Expense',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 
-  void showAddExpenseDialog(BuildContext context) {
+  void showAddExpenseDialog(BuildContext context, {ExpenseModel? expense}) {
     final titleController = TextEditingController();
     final amountController = TextEditingController();
     ExpenseCategory? selectedCategory;
+
+    bool isEditing = expense != null;
+
+    if (expense != null) {
+      titleController.text = expense.title;
+      amountController.text = expense.amount.toString();
+      selectedCategory = expense.category;
+    }
 
     showDialog(
       context: context,
@@ -78,7 +94,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
-            
           ),
 
           title: const Text(
@@ -110,6 +125,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 Consumer<ExpenseCategoryController>(
                   builder: (context, categoryController, child) {
                     return DropdownButtonFormField(
+                      initialValue: selectedCategory,
                       decoration: InputDecoration(
                         labelText: 'Category',
                         border: OutlineInputBorder(
@@ -211,21 +227,24 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                 if (title.isEmpty) return;
 
                 if (selectedCategory == null) return;
-                ExpenseModel expense = ExpenseModel(
+                ExpenseModel newExp = ExpenseModel(
                   title: title,
                   amount: amount,
                   category: selectedCategory!,
-                  id: Uuid().v4(),
+                  id: isEditing ? expense.id : Uuid().v4(),
                   date: DateTime.now(),
-                  expenseAmount: amountController.text.trim().isEmpty
-                      ? 0
-                      : double.tryParse(amountController.text.trim()) ?? 0,
                 );
 
-                addNewExpense(context, expense);
+                if (isEditing) {
+                  // Update existing expense
+                  updateExistingExpense(context, newExp);
+                } else {
+                  // Add new expense
+                  addNewExpense(context, newExp);
+                }
                 Navigator.pop(context);
               },
-              child: const Text('Add'),
+              child: Text(isEditing ? 'Update' : 'Add'),
             ),
           ],
         );
@@ -235,5 +254,12 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
 
   void addNewExpense(BuildContext context, ExpenseModel expense) {
     Provider.of<ExpenseController>(context, listen: false).addExpense(expense);
+  }
+
+  void updateExistingExpense(BuildContext context, ExpenseModel expense) {
+    Provider.of<ExpenseController>(
+      context,
+      listen: false,
+    ).updateExpense(expense);
   }
 }

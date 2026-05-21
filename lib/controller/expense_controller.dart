@@ -14,23 +14,50 @@ class ExpenseController extends BaseController {
       ExpenseModel(
         id: '1',
         title: 'Groceries',
+        amount: 1200.0,
+        date: DateTime.now(),
+        category: ExpenseCategory(
+          id: '7',
+          name: 'Income',
+          icon: Icons.south_west,
+          color: Colors.blue,
+        ),
+      ),
+      ExpenseModel(
+        id: '1',
+        title: 'Groceries',
         amount: -50.0,
         date: DateTime.now(),
-        category: ExpenseCategory(id: '1', name: 'Food & Drink', icon: Icons.fastfood, color: Colors.orange), expenseAmount: 100,
+        category: ExpenseCategory(
+          id: '1',
+          name: 'Food & Drink',
+          icon: Icons.fastfood,
+          color: Colors.orange,
+        ),
       ),
       ExpenseModel(
         id: '2',
         title: 'Transportation',
         amount: -20.0,
         date: DateTime.now(),
-        category: ExpenseCategory(id: '2', name: 'Transportation', icon: Icons.directions_car, color: Colors.blue), expenseAmount: 5,
+        category: ExpenseCategory(
+          id: '2',
+          name: 'Transportation',
+          icon: Icons.directions_car,
+          color: Colors.blue,
+        ),
       ),
       ExpenseModel(
         id: '3',
         title: 'Utilities',
-        amount: -100.0,
+        amount: -30.0,
         date: DateTime.now(),
-        category: ExpenseCategory(id: '3', name: 'Bills', icon: Icons.receipt, color: Colors.green), expenseAmount: 30,
+        category: ExpenseCategory(
+          id: '3',
+          name: 'Bills',
+          icon: Icons.receipt,
+          color: Colors.green,
+        ),
       ),
     ]);
   }
@@ -38,6 +65,14 @@ class ExpenseController extends BaseController {
   void addExpense(ExpenseModel expense) {
     _expenses.add(expense);
     notifyListeners();
+  }
+
+  void updateExpense(ExpenseModel expense) {
+    final index = _expenses.indexWhere((e) => e.id == expense.id);
+    if (index != -1) {
+      _expenses[index] = expense;
+      notifyListeners();
+    }
   }
 
   void removeExpense(ExpenseModel expense) {

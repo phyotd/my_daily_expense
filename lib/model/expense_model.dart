@@ -6,7 +6,6 @@ class ExpenseModel {
   final double amount;
   final DateTime date;
   final ExpenseCategory category;
-  final double expenseAmount;
 
   ExpenseModel({
     required this.id,
@@ -14,7 +13,6 @@ class ExpenseModel {
     required this.amount,
     required this.date,
     required this.category,
-    required this.expenseAmount,
   });
 
   @override
@@ -34,7 +32,6 @@ class ExpenseModel {
       'amount': amount,
       'date': date.toIso8601String(),
       'category': category.toJson(),
-      'expenseAmount': expenseAmount,
     };
   }
 
@@ -42,10 +39,9 @@ class ExpenseModel {
     return ExpenseModel(
       id: json['id'],
       title: json['title'],
-      amount: json['amount'],
+      amount: double.tryParse(json['amount'].toString()) ?? 0.0,
       date: DateTime.parse(json['date']),
       category: ExpenseCategory.fromJson(json['category']),
-      expenseAmount: double.tryParse(json['expenseAmount'].toString()) ?? 0.0,
     );
   }
 }

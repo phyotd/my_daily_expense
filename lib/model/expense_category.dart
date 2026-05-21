@@ -13,6 +13,15 @@ class ExpenseCategory {
     required this.color,
   });
 
+   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExpenseCategory &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+
   Map<String, dynamic> toJson() {
     return {'id': id, 'name': name};
   }
