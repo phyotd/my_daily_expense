@@ -4,15 +4,17 @@ class ExpenseModel {
   final String id;
   final String title;
   final double amount;
-  final DateTime date;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final ExpenseCategory category;
 
   ExpenseModel({
     required this.id,
     required this.title,
     required this.amount,
-    required this.date,
+     this.createdAt,
     required this.category,
+     this.updatedAt,
   });
 
   @override
@@ -30,7 +32,8 @@ class ExpenseModel {
       'id': id,
       'title': title,
       'amount': amount,
-      'date': date.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
       'category': category.toJson(),
     };
   }
@@ -40,7 +43,12 @@ class ExpenseModel {
       id: json['id'],
       title: json['title'],
       amount: double.tryParse(json['amount'].toString()) ?? 0.0,
-      date: DateTime.parse(json['date']),
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
       category: ExpenseCategory.fromJson(json['category']),
     );
   }

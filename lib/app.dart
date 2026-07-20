@@ -1,10 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:my_daily_expense/controller/expense_category_controller.dart';
 import 'package:my_daily_expense/controller/expense_controller.dart';
-import 'package:my_daily_expense/controller/main_controller.dart';
-import 'package:my_daily_expense/screens/expense_screen.dart';
-import 'package:my_daily_expense/screens/home_screen.dart';
+import 'package:my_daily_expense/controller/theme_controller.dart';
+import 'package:my_daily_expense/controller/user_controller.dart';
+import 'package:my_daily_expense/core/routing/app_router.dart';
+import 'package:my_daily_expense/repository/category_repository.dart';
+import 'package:my_daily_expense/repository/expense_repository.dart';
+import 'package:my_daily_expense/core/theme/app_theme.dart';
+import 'package:my_daily_expense/core/theme/app_themes.dart';
+import 'package:my_daily_expense/repository/user_repository.dart';
 import 'package:provider/provider.dart';
 
 class App extends StatefulWidget {
@@ -15,15 +19,8 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  final mainController = MainController();
-  final expenseController = ExpenseController();
-  final expenseCategoryController = ExpenseCategoryController();
-
-@override
+  @override
   void initState() {
-    mainController.addController(expenseController);
-    mainController.addController(expenseCategoryController);
     super.initState();
   }
 
@@ -31,17 +28,35 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: mainController),
-        ChangeNotifierProvider.value(value: expenseController),
-        ChangeNotifierProvider.value(value: expenseCategoryController),
-      ],
-      child: MaterialApp(
-        title: 'My Daily Expense',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        Provider<ExpenseRepository>(create: (_) => ExpenseRepository()),
+        Provider<CategoryRepository>(create: (_) => CategoryRepository()),
+        Provider<UserRepository>(create: (_) => UserRepository()),
+        ChangeNotifierProvider<ThemeController>(
+          create: (context) => ThemeController(),
         ),
-        home: HomeScreen(),
+        ChangeNotifierProvider<ExpenseCategoryController>(
+          create: (context) =>
+              ExpenseCategoryController(context.read<CategoryRepository>()),
+        ),
+        ChangeNotifierProvider<ExpenseController>(
+          create: (context) =>
+              ExpenseController(context.read<ExpenseRepository>()),
+        ),
+        ChangeNotifierProvider<UserController>(
+          create: (context) => UserController(context.read<UserRepository>()),
+        ),
+      ],
+      child: Consumer<ThemeController>(
+        builder: (context, themeController, child) {
+          return MaterialApp.router(
+            title: 'My Daily Expense',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeController.themeMode,
+            theme: AppThemes.light.themeData,
+            darkTheme: AppThemes.dark.themeData,
+            routerConfig: AppRouter.router,
+          );
+        },
       ),
     );
   }

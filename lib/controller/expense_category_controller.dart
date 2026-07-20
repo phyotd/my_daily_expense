@@ -1,68 +1,80 @@
-import 'package:flutter/material.dart';
-import 'package:my_daily_expense/controller/base_controller.dart';
-import 'package:my_daily_expense/model/expense_category.dart';
+import 'dart:async';
 
-class ExpenseCategoryController extends BaseController {
+import 'package:flutter/material.dart';
+import 'package:my_daily_expense/model/expense_category.dart';
+import 'package:my_daily_expense/repository/category_repository.dart';
+
+class ExpenseCategoryController extends ChangeNotifier {
+  final CategoryRepository repository;
+
+  ExpenseCategoryController(this.repository);
+
   final List<ExpenseCategory> _categories = [];
 
   List<ExpenseCategory> get categories => _categories;
 
-  ExpenseCategoryController() {
-    // Initialize with some default categories
-    _categories.addAll([
-      
-      ExpenseCategory(
-        name: 'Food & Drink',
-        id: '1',
-        icon: Icons.fastfood,
-        color: Colors.orange,
-      ),
-      ExpenseCategory(
-        name: 'Transportation',
-        id: '2',
-        icon: Icons.directions_car,
-        color: Colors.lightBlueAccent,
-      ),
-      ExpenseCategory(
-        name: 'Bills',
-        id: '3',
-        icon: Icons.receipt,
-        color: Colors.green,
-      ),
-      ExpenseCategory(
-        name: 'Entertainment',
-        id: '4',
-        icon: Icons.movie,
-        color: Colors.purple,
-      ),
-      ExpenseCategory(
-        name: 'Health',
-        id: '5',
-        icon: Icons.health_and_safety,
-        color: Colors.red,
-      ),
-      ExpenseCategory(
-        name: 'Education',
-        id: '6',
-        icon: Icons.school,
-        color: Colors.yellow,
-      ),
-      ExpenseCategory(
-        name: 'Income',
-        id: '7',
-        icon: Icons.south_west,
-        color: Colors.blue,
-      ),
-    ]);
+  StreamSubscription? _subscription;
+
+  void startListening() {
+    _subscription = repository.watchCategories().listen((data) {
+      _categories.clear();
+      _categories.addAll(data);
+      notifyListeners();
+    });
   }
 
-  void addCategory(ExpenseCategory category) {
-    _categories.add(category);
-    notifyListeners();
-  }
+  // ExpenseCategoryController() {
+  //   // Initialize with some default categories
+  //   // _categories.addAll([
+  //   //   ExpenseCategory(
+  //   //     name: 'Food & Drink',
+  //   //     id: '1',
+  //   //     icon: Icons.fastfood,
+  //   //     color: Colors.orange,
+  //   //   ),
+  //   //   ExpenseCategory(
+  //   //     name: 'Transportation',
+  //   //     id: '2',
+  //   //     icon: Icons.directions_car,
+  //   //     color: Colors.lightBlueAccent,
+  //   //   ),
+  //   //   ExpenseCategory(
+  //   //     name: 'Bills',
+  //   //     id: '3',
+  //   //     icon: Icons.receipt,
+  //   //     color: Colors.green,
+  //   //   ),
+  //   //   ExpenseCategory(
+  //   //     name: 'Entertainment',
+  //   //     id: '4',
+  //   //     icon: Icons.movie,
+  //   //     color: Colors.purple,
+  //   //   ),
+  //   //   ExpenseCategory(
+  //   //     name: 'Health',
+  //   //     id: '5',
+  //   //     icon: Icons.health_and_safety,
+  //   //     color: Colors.red,
+  //   //   ),
+  //   //   ExpenseCategory(
+  //   //     name: 'Education',
+  //   //     id: '6',
+  //   //     icon: Icons.school,
+  //   //     color: Colors.yellow,
+  //   //   ),
+  //   //   ExpenseCategory(
+  //   //     name: 'Income',
+  //   //     id: '7',
+  //   //     icon: Icons.south_west,
+  //   //     color: Colors.blue,
+  //   //   ),
+  //   // ]);
 
-  void removeCategory(ExpenseCategory category) {
-    _categories.remove(category);
-    notifyListeners();
+  // }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

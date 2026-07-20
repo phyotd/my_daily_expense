@@ -1,27 +1,42 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:my_daily_expense/components/transaction_row_item.dart';
 import 'package:my_daily_expense/controller/expense_category_controller.dart';
 import 'package:my_daily_expense/model/expense_category.dart';
 import 'package:my_daily_expense/model/expense_model.dart';
+import 'package:my_daily_expense/repository/expense_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:my_daily_expense/controller/expense_controller.dart';
 import 'package:uuid/uuid.dart';
+import 'package:my_daily_expense/core/theme/theme_extensions.dart';
 
-class ExpenseScreen extends StatefulWidget {
-  const ExpenseScreen({super.key});
+class ExpenseListScreen extends StatefulWidget {
+  const ExpenseListScreen({super.key});
 
   @override
-  State<ExpenseScreen> createState() => _ExpenseScreenState();
+  State<ExpenseListScreen> createState() => _ExpenseListScreenState();
 }
 
-class _ExpenseScreenState extends State<ExpenseScreen> {
+class _ExpenseListScreenState extends State<ExpenseListScreen> {
+  final ExpenseRepository expenseRepository = ExpenseRepository();
+
+  @override
+  void initState() {
+    Future.microtask(() {
+      context.read<ExpenseController>().startListening();
+      context.read<ExpenseCategoryController>().startListening();
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.appTheme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('My Daily Expense'),
-        backgroundColor: Colors.white,
+        backgroundColor: context.appTheme.appBarTheme.backgroundColor,
         centerTitle: true,
         leading: IconButton(
           onPressed: () {
@@ -30,9 +45,19 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
           icon: const Icon(Icons.arrow_back_ios_new),
         ),
       ),
-      body: Consumer<ExpenseController>(
-        builder: (context, expenseController, child) {
-          final expenses = expenseController.expenses;
+      body: StreamBuilder<List<ExpenseModel>>(
+        stream: expenseRepository.watchExpenses(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No expenses found'));
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error fetching expenses'));
+          }
+          final expenses = snapshot.data ?? [];
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListView.separated(
@@ -45,7 +70,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   },
                   child: TransactionRowItem(
                     expense: expense,
-                    onDelete: () => expenseController.removeExpense(expense),
+                    onDelete: () => expenseRepository.deleteExpense(expense.id),
                   ),
                 );
               },
@@ -232,15 +257,16 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                   amount: amount,
                   category: selectedCategory!,
                   id: isEditing ? expense.id : Uuid().v4(),
-                  date: DateTime.now(),
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
                 );
 
                 if (isEditing) {
                   // Update existing expense
-                  updateExistingExpense(context, newExp);
+                  expenseRepository.updateExpense(newExp);
                 } else {
                   // Add new expense
-                  addNewExpense(context, newExp);
+                  expenseRepository.addExpense(newExp);
                 }
                 Navigator.pop(context);
               },
@@ -250,16 +276,5 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         );
       },
     );
-  }
-
-  void addNewExpense(BuildContext context, ExpenseModel expense) {
-    Provider.of<ExpenseController>(context, listen: false).addExpense(expense);
-  }
-
-  void updateExistingExpense(BuildContext context, ExpenseModel expense) {
-    Provider.of<ExpenseController>(
-      context,
-      listen: false,
-    ).updateExpense(expense);
   }
 }
