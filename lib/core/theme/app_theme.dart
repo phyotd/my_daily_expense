@@ -21,4 +21,6 @@ class AppTheme {
   AppBarThemeData get appBarTheme => themeData.appBarTheme;
 
   TextTheme get textTheme => themeData.textTheme;
+
+  Color get cardColor => themeData.cardColor;
 }

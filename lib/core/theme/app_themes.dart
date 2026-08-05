@@ -9,14 +9,17 @@ class AppThemes {
       brightness: Brightness.light,
       primaryColor: Colors.deepPurple,
       scaffoldBackgroundColor: Colors.white,
+     
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        surfaceTintColor: Colors.white,
       ),
       textTheme: const TextTheme(
         titleLarge: TextStyle(color: Colors.black),
         titleMedium: TextStyle(color: Colors.black),
       ),
+      cardColor: Colors.deepPurple,
     ),
 
     successColor: Colors.green,
@@ -29,10 +32,15 @@ class AppThemes {
       brightness: Brightness.dark,
       primaryColor: Colors.deepPurple,
       scaffoldBackgroundColor: const Color(0xFF121212),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(color: Colors.black),
-        titleMedium: TextStyle(color: Colors.black),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
       ),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(color: Colors.white),
+        titleMedium: TextStyle(color: Colors.white),
+      ),
+      cardColor: Colors.deepPurple,
     ),
 
     successColor: Colors.greenAccent,

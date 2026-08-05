@@ -1,13 +1,15 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:my_daily_expense/components/transaction_row_item.dart';
 import 'package:my_daily_expense/controller/expense_controller.dart';
 import 'package:my_daily_expense/controller/theme_controller.dart';
 import 'package:my_daily_expense/controller/user_controller.dart';
+import 'package:my_daily_expense/helper/app_icon.dart';
 import 'package:my_daily_expense/screens/cateogry/category_list_screen.dart';
 import 'package:my_daily_expense/screens/expense/expense_list_screen.dart';
+import 'package:my_daily_expense/util/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:my_daily_expense/core/theme/theme_extensions.dart';
 
@@ -33,9 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: context.appTheme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Welcome to My Daily Expense'),
+        title: const Text('Dashboard'),
         centerTitle: true,
         backgroundColor: context.appTheme.appBarTheme.backgroundColor,
+        surfaceTintColor: context.appTheme.appBarTheme.surfaceTintColor,
       ),
       drawer: Drawer(
         child: ListView(
@@ -96,20 +99,39 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [buildWalletBalanceCard(), buildExpenseBalanceCard()],
+            Container(
+              decoration: BoxDecoration(
+                color: context.appTheme.primaryColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [buildWalletBalanceCard()],
+              ),
             ),
             sizeBox20(),
-            shortcutButtons(),
-            // sizeBox20(),
-            recentTransactionList(),
-            // sizeBox20(),
-            expensesByCategories(),
+            buildMonthOverview(),
             sizeBox20(),
+
+            buildExpenseBreakdown(),
+            buildRecentTransaction(),
+            // shortcutButtons(),
+            // sizeBox20(),
+            // recentTransactionList(),
+            // sizeBox20(),
+            // expensesByCategories(),
+            // sizeBox20(),
           ],
         ),
       ),
@@ -117,7 +139,6 @@ class _HomeScreenState extends State<HomeScreen> {
         tabs: [
           GButton(
             icon: Icons.home,
-            text: 'Home',
             onPressed: () {
               Navigator.push(
                 context,
@@ -127,7 +148,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           GButton(
             icon: Icons.category,
-            text: 'Categories',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CategoryListScreen(),
+                ),
+              );
+            },
+          ),
+          GButton(
+            icon: Icons.add,
             onPressed: () {
               Navigator.push(
                 context,
@@ -139,7 +170,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           GButton(
             icon: Icons.compare_arrows,
-            text: 'Recent Transactions',
             onPressed: () {
               Navigator.push(
                 context,
@@ -149,7 +179,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           GButton(
             icon: Icons.settings,
-            text: 'Settings',
             onPressed: () {
               Navigator.push(
                 context,
@@ -162,30 +191,334 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget buildSectionTitle(String title, {Widget? trailing}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: context.appTheme.textTheme.titleMedium?.color,
+            ),
+          ),
+          if (trailing != null) trailing,
+        ],
+      ),
+    );
+  }
+
+  Widget buildMonthOverview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildSectionTitle("This month overview"),
+        sizeBox10(),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: customCard(
+                  'Income',
+                  '0',
+                  Icons.north_east,
+                  Colors.green,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: customCard('Expense', '0', Icons.south_east, Colors.red),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget sizeBox20() {
     return const SizedBox(height: 20);
   }
 
+  Widget sizeBox10() {
+    return const SizedBox(height: 10);
+  }
+
+  Widget buildExpenseBreakdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildSectionTitle(
+          "Expense Breakdown",
+          trailing: Text(
+            'This Month',
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: context.appTheme.textTheme.titleMedium?.color,
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 200,
+                child: PieChart(
+                  curve: Curves.ease,
+                  PieChartData(
+                    sections: [
+                      PieChartSectionData(
+                        color: Colors.orange,
+                        value: 50,
+                        showTitle: false,
+                        title: 'Food',
+                      ),
+                      PieChartSectionData(
+                        color: Colors.blue,
+                        value: 30,
+                        showTitle: false,
+                        title: 'Transport',
+                      ),
+                      PieChartSectionData(
+                        color: Colors.purple,
+                        value: 40,
+                        showTitle: false,
+                        title: 'Shopping',
+                      ),
+                      PieChartSectionData(
+                        color: Colors.green,
+                        value: 40,
+                        showTitle: false,
+                        title: 'Others',
+                      ),
+                      PieChartSectionData(
+                        color: Colors.red,
+                        value: 10,
+                        showTitle: false,
+                        title: 'Bills',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 30),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            color: Colors.orange,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text('Food:'),
+                          ),
+                        ],
+                      ),
+                      Text('50%'),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(width: 10, height: 10, color: Colors.blue),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text('Transport:'),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text('50%'),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            color: Colors.purple,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text('Shopping:'),
+                          ),
+                        ],
+                      ),
+                      Text('50%'),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(width: 10, height: 10, color: Colors.red),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text('Bills:'),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text('50%'),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(width: 10, height: 10, color: Colors.grey),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Text('Others:'),
+                          ),
+                        ],
+                      ),
+                      Text('10%'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget customCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: context.appTheme.textTheme.titleMedium?.color,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: context.appTheme.textTheme.titleMedium?.color,
+                ),
+              ),
+              Icon(icon, color: color, size: 35),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget buildWalletBalanceCard() {
     return Consumer<UserController>(
-      builder: (context, userController, child) {
+      builder: (_, userController, child) {
         final user = userController.currentUser;
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Wallet Balance',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              Text(
+                'Total Balance',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    '\$${user?.walletBalance ?? 0}',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Icon(Icons.south_west, color: Colors.white, size: 30),
+                ],
               ),
               const SizedBox(height: 8),
               Text(
-                '\$${user?.walletBalance ?? 0}',
+                '+${user?.walletBalance ?? 0} vs last month', // compare total balance with previous month balance
                 style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: context.appTheme.primaryColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -205,7 +538,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               const Text(
-                'Expense Balance',
+                'Total Expense',
                 textAlign: TextAlign.end,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
               ),
@@ -225,202 +558,97 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget shortcutButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Flexible(
-          flex: 1,
-          child: SizedBox(
-            height: 50,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: context.appTheme.primaryColor,
-                    width: 1,
-                  ),
-                ),
-              ),
-              onPressed: () {
-                // Navigate to Add Expense Screen
-              },
-              child: const Text('+ Expense'),
-            ),
-          ),
-        ),
-        Flexible(
-          flex: 1,
-          child: SizedBox(
-            height: 50,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                // Navigate to Reports Screen
-              },
-              child: const Text('+ Income'),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget recentTransactionList() {
+  Widget buildRecentTransaction() {
     return Consumer<ExpenseController>(
       builder: (context, expenseController, child) {
         final transactions = expenseController.expenses;
-        return Container(
-          padding: const EdgeInsets.all(10),
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recent Transactions',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.appTheme.textTheme.titleMedium?.color,
+        return Column(
+          children: [
+            buildSectionTitle(
+              "Recent Transactions",
+              trailing: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ExpenseListScreen(),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ExpenseListScreen(),
-                        ),
-                      );
-                    },
-                    child: const Row(
-                      children: [
-                        Text('See All'),
-                        SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_ios, size: 14),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: transactions.length,
-                separatorBuilder: (_, __) => Divider(color: Colors.grey[100]),
-                itemBuilder: (context, index) {
-                  final expense = transactions[index];
-
-                  // return TransactionRowItem(expense: expense);
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(expense.title),
-                      const SizedBox(width: 8),
-                      Text('\$${expense.amount.toStringAsFixed(2)}'),
-                    ],
                   );
                 },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget expensesByCategories() {
-    return Consumer<ExpenseController>(
-      builder: (context, expenseController, child) {
-        final transactions = expenseController.expenses;
-        return Container(
-          padding: const EdgeInsets.all(10),
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Expense by Categories',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.appTheme.textTheme.titleMedium?.color,
-                    ),
+                child: Text(
+                  'See All',
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: context.appTheme.primaryColor,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ExpenseListScreen(),
-                        ),
-                      );
-                    },
-                    child: const Row(
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: transactions.length,
+              separatorBuilder: (_, __) => Divider(color: Colors.grey[100]),
+              itemBuilder: (context, index) {
+                final expense = transactions[index];
+
+                return Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: expense.category.color?.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: AppIcons.icons[expense.category.iconName] != null
+                          ? Icon(
+                              AppIcons.icons[expense.category.iconName],
+                              color: expense.category.color,
+                            )
+                          : const Icon(Icons.category, color: Colors.grey),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('See All'),
-                        SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_ios, size: 14),
+                        Text(
+                          expense.title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          expense.category.name,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: transactions.length,
-                separatorBuilder: (_, __) => const Divider(),
-                itemBuilder: (context, index) {
-                  final expense = transactions[index];
-
-                  return TransactionRowItem(expense: expense);
-                },
-              ),
-            ],
-          ),
+                    Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('\$${expense.amount.toStringAsFixed(2)}'),
+                        const SizedBox(width: 8),
+                        Text(
+                          expense.createdAt != null
+                              ? formatDateLabel(expense.createdAt!)
+                              : "",
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
         );
       },
     );

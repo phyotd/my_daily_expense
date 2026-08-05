@@ -6,7 +6,6 @@ import 'package:my_daily_expense/controller/user_controller.dart';
 import 'package:my_daily_expense/core/routing/app_router.dart';
 import 'package:my_daily_expense/repository/category_repository.dart';
 import 'package:my_daily_expense/repository/expense_repository.dart';
-import 'package:my_daily_expense/core/theme/app_theme.dart';
 import 'package:my_daily_expense/core/theme/app_themes.dart';
 import 'package:my_daily_expense/repository/user_repository.dart';
 import 'package:provider/provider.dart';
