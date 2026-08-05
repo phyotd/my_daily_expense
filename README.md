@@ -95,11 +95,14 @@ flutter run
 
 ```text
 lib/
-├── controller/
-├── model/
-├── views/
-├── util/
 ├── components/
+├── controller/
+├── core/
+├── helper/
+├── model/
+├── screens/
+├── util/
+├── repository/
 ├── app.dart
 └── main.dart
 ```
