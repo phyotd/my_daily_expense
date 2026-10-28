@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 final dateFormatter = DateFormat('yyyy-MM-dd a');
 
+final int fixedCount = 7;
+
 Color getRandomPastelColor() {
   final random = Random();
 

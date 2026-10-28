@@ -9,6 +9,10 @@ class AppRoutes {
   static const createCategory = '/categories/create';
   static const editCategory = '/categories/edit';
 
+  // Expense
+  static const expenses = '/expenses';
+  static const createExpense = '/expenses/create';
+
   // Product
   static const products = '/products';
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:my_daily_expense/app.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:my_daily_expense/database/app_database.dart';
 import 'package:my_daily_expense/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppDatabase.instance.initDatabase();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const App());
 }

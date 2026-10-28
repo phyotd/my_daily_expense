@@ -4,8 +4,6 @@ import 'package:my_daily_expense/controller/expense_category_controller.dart';
 import 'package:my_daily_expense/core/routing/app_routes.dart';
 import 'package:my_daily_expense/helper/app_icon.dart';
 import 'package:my_daily_expense/repository/category_repository.dart';
-import 'package:my_daily_expense/core/theme/app_theme.dart';
-import 'package:my_daily_expense/util/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:my_daily_expense/core/theme/theme_extensions.dart';
 
@@ -17,7 +15,7 @@ class CategoryListScreen extends StatefulWidget {
 }
 
 class _CategoryListScreenState extends State<CategoryListScreen> {
-  final categoryRepository = CategoryRepository();
+  bool enableDelete = false;
 
   @override
   void initState() {
@@ -48,65 +46,144 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             },
             icon: const Icon(Icons.add),
           ),
-        ],
-      ),
-      body: StreamBuilder(
-        stream: categoryRepository.watchCategories(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No category found'));
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final categories = snapshot.data ?? [];
-        
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              Color randomColor = getRandomPastelColor();
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                child: ListTile(
-                  tileColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: randomColor, width: 1.5),
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: category.color?.withOpacity(0.1),
-                    child: Icon(
-                      AppIcons.icons[category.iconName],
-                      color: randomColor,
-                    ),
-                  ),
-                  title: Text(
-                    category.name,
+          !enableDelete
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      enableDelete = !enableDelete;
+                    });
+                  },
+                  icon: const Icon(Icons.delete),
+                )
+              : TextButton(
+                  onPressed: () {
+                    setState(() {
+                      enableDelete = !enableDelete;
+                    });
+                  },
+                  child: Text(
+                    'Cancel',
                     style: TextStyle(
-                      fontWeight: FontWeight.w600,
                       color: context.appTheme.textTheme.titleMedium?.color,
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
                 ),
-              );
-            },
-          );
-        },
+        ],
+      ),
+      body: Container(
+        color: context.appTheme.appBarTheme.backgroundColor,
+        child: StreamBuilder(
+          stream: CategoryRepository.instance.watchCategories(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No category found'));
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            final categories = snapshot.data ?? [];
+
+            return GridView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+              ),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 150,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Color(category.color ?? 0),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            AppIcons.icons[category.iconName],
+                            color: Color(category.color ?? 0),
+                            size: 30,
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            category.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  context.appTheme.textTheme.titleMedium?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    enableDelete
+                        ? Positioned(
+                            right: -5,
+                            top: -5,
+                            child: IconButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Text('Delete Category'),
+                                      content: Text(
+                                        'Are you sure you want to delete this category?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            context
+                                                .read<
+                                                  ExpenseCategoryController
+                                                >()
+                                                .deleteCategory(category.id);
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('Delete'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              icon: Icon(
+                                Icons.clear,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

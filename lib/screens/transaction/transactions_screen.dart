@@ -1,8 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:my_daily_expense/components/transaction_row_item.dart';
 import 'package:my_daily_expense/controller/expense_category_controller.dart';
+import 'package:my_daily_expense/core/routing/app_routes.dart';
 import 'package:my_daily_expense/model/expense_category.dart';
 import 'package:my_daily_expense/model/expense_model.dart';
 import 'package:my_daily_expense/repository/expense_repository.dart';
@@ -11,15 +15,15 @@ import 'package:my_daily_expense/controller/expense_controller.dart';
 import 'package:uuid/uuid.dart';
 import 'package:my_daily_expense/core/theme/theme_extensions.dart';
 
-class ExpenseListScreen extends StatefulWidget {
-  const ExpenseListScreen({super.key});
+class TransactionsScreen extends StatefulWidget {
+  const TransactionsScreen({super.key});
 
   @override
-  State<ExpenseListScreen> createState() => _ExpenseListScreenState();
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
 }
 
-class _ExpenseListScreenState extends State<ExpenseListScreen> {
-  final ExpenseRepository expenseRepository = ExpenseRepository();
+class _TransactionsScreenState extends State<TransactionsScreen> {
+  final ExpenseRepository expenseRepository = ExpenseRepository.instance;
 
   @override
   void initState() {
@@ -35,65 +39,66 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     return Scaffold(
       backgroundColor: context.appTheme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('My Daily Expense'),
+        title: const Text('Expenses'),
         backgroundColor: context.appTheme.appBarTheme.backgroundColor,
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
+        // leading: IconButton(
+        //   onPressed: () {
+        //     Navigator.of(context).pop();
+        //   },
+        //   icon: const Icon(Icons.arrow_back_ios_new),
+        // ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.push(AppRoutes.createExpense);
+            },
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: context.appTheme.appBarTheme.backgroundColor,
+        child: StreamBuilder<List<ExpenseModel>>(
+          stream: expenseRepository.watchExpenses(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No expenses found'));
+            }
+            if (snapshot.hasError) {
+              return const Center(child: Text('Error fetching expenses'));
+            }
+            final expenses = snapshot.data ?? [];
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.separated(
+                itemCount: expenses.length,
+                itemBuilder: (context, index) {
+                  final expense = expenses[index];
+                  return GestureDetector(
+                    onTap: () {
+                      // showAddExpenseDialog(context, expense: expense);
+                    },
+                    child: TransactionRowItem(
+                      key: ValueKey(expense.id),
+                      expense: expense,
+                      onDelete: () =>
+                          expenseRepository.deleteExpense(expense.id),
+                    ),
+                  );
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  return const Divider();
+                },
+              ),
+            );
           },
-          icon: const Icon(Icons.arrow_back_ios_new),
         ),
-      ),
-      body: StreamBuilder<List<ExpenseModel>>(
-        stream: expenseRepository.watchExpenses(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No expenses found'));
-          }
-          if (snapshot.hasError) {
-            return const Center(child: Text('Error fetching expenses'));
-          }
-          final expenses = snapshot.data ?? [];
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ListView.separated(
-              itemCount: expenses.length,
-              itemBuilder: (context, index) {
-                final expense = expenses[index];
-                return GestureDetector(
-                  onTap: () {
-                    showAddExpenseDialog(context, expense: expense);
-                  },
-                  child: TransactionRowItem(
-                    expense: expense,
-                    onDelete: () => expenseRepository.deleteExpense(expense.id),
-                  ),
-                );
-              },
-              separatorBuilder: (BuildContext context, int index) {
-                return const Divider();
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          showAddExpenseDialog(context);
-        },
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-
-        elevation: 4,
-        label: const Text(
-          'New Expense',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -106,7 +111,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     bool isEditing = expense != null;
 
     if (expense != null) {
-      titleController.text = expense.title;
+      titleController.text = expense.note;
       amountController.text = expense.amount.toString();
       selectedCategory = expense.category;
     }
@@ -253,12 +258,14 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
 
                 if (selectedCategory == null) return;
                 ExpenseModel newExp = ExpenseModel(
-                  title: title,
+                  note: title,
                   amount: amount,
+                  categoryId: selectedCategory!.id,
                   category: selectedCategory!,
                   id: isEditing ? expense.id : Uuid().v4(),
                   createdAt: DateTime.now(),
                   updatedAt: DateTime.now(),
+                  isExpense: false,
                 );
 
                 if (isEditing) {

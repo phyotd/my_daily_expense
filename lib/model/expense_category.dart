@@ -4,8 +4,8 @@ class ExpenseCategory {
   final String id;
   final String name;
   final String? iconName;
-  final Color? color;
-  final bool isExpense;
+  final int? color;
+  final bool isSynced;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -14,9 +14,9 @@ class ExpenseCategory {
     required this.name,
     this.iconName,
     required this.color,
-    required this.isExpense,
     this.createdAt,
     this.updatedAt,
+    required this.isSynced,
   });
 
   @override
@@ -31,10 +31,10 @@ class ExpenseCategory {
       'id': id,
       'name': name,
       'icon_name': iconName,
-      'color': color?.value,
-      'is_expense': isExpense,
+      'color': color,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'is_synced': isSynced ? 1 : 0,
     };
   }
 
@@ -43,14 +43,14 @@ class ExpenseCategory {
       id: json['id'],
       name: json['name'],
       iconName: json['icon_name'],
-      color: json['color'] != null ? Color(json['color']) : Colors.grey,
-      isExpense: json['is_expense'] ?? true,
+      color: json['color'] != null ? int.tryParse(json['color'].toString()) : null,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : null,
+      isSynced: json['is_synced'] == 1 ? true : false,
     );
   }
 }

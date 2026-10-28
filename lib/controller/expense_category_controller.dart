@@ -5,9 +5,7 @@ import 'package:my_daily_expense/model/expense_category.dart';
 import 'package:my_daily_expense/repository/category_repository.dart';
 
 class ExpenseCategoryController extends ChangeNotifier {
-  final CategoryRepository repository;
-
-  ExpenseCategoryController(this.repository);
+  ExpenseCategoryController();
 
   final List<ExpenseCategory> _categories = [];
 
@@ -16,61 +14,23 @@ class ExpenseCategoryController extends ChangeNotifier {
   StreamSubscription? _subscription;
 
   void startListening() {
-    _subscription = repository.watchCategories().listen((data) {
-      _categories.clear();
-      _categories.addAll(data);
+    _subscription?.cancel();
+    _subscription = CategoryRepository.instance.watchCategories().listen((
+      data,
+    ) {
+      debugPrint("Categories updated: ${data.length}");
+
+      _categories
+        ..clear()
+        ..addAll(data);
+
       notifyListeners();
     });
   }
 
-  // ExpenseCategoryController() {
-  //   // Initialize with some default categories
-  //   // _categories.addAll([
-  //   //   ExpenseCategory(
-  //   //     name: 'Food & Drink',
-  //   //     id: '1',
-  //   //     icon: Icons.fastfood,
-  //   //     color: Colors.orange,
-  //   //   ),
-  //   //   ExpenseCategory(
-  //   //     name: 'Transportation',
-  //   //     id: '2',
-  //   //     icon: Icons.directions_car,
-  //   //     color: Colors.lightBlueAccent,
-  //   //   ),
-  //   //   ExpenseCategory(
-  //   //     name: 'Bills',
-  //   //     id: '3',
-  //   //     icon: Icons.receipt,
-  //   //     color: Colors.green,
-  //   //   ),
-  //   //   ExpenseCategory(
-  //   //     name: 'Entertainment',
-  //   //     id: '4',
-  //   //     icon: Icons.movie,
-  //   //     color: Colors.purple,
-  //   //   ),
-  //   //   ExpenseCategory(
-  //   //     name: 'Health',
-  //   //     id: '5',
-  //   //     icon: Icons.health_and_safety,
-  //   //     color: Colors.red,
-  //   //   ),
-  //   //   ExpenseCategory(
-  //   //     name: 'Education',
-  //   //     id: '6',
-  //   //     icon: Icons.school,
-  //   //     color: Colors.yellow,
-  //   //   ),
-  //   //   ExpenseCategory(
-  //   //     name: 'Income',
-  //   //     id: '7',
-  //   //     icon: Icons.south_west,
-  //   //     color: Colors.blue,
-  //   //   ),
-  //   // ]);
-
-  // }
+  Future<void> deleteCategory(String id) async {
+    await CategoryRepository.instance.deleteCategory(id);
+  }
 
   @override
   void dispose() {

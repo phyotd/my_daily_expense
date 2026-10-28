@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:my_daily_expense/core/theme/theme_extensions.dart';
 import 'package:my_daily_expense/helper/app_icon.dart';
 import 'package:my_daily_expense/model/expense_category.dart';
 import 'package:my_daily_expense/repository/category_repository.dart';
+import 'package:my_daily_expense/util/utils.dart';
 import 'package:uuid/uuid.dart';
 
 class CreateCategoryScreen extends StatefulWidget {
@@ -15,41 +17,55 @@ class CreateCategoryScreen extends StatefulWidget {
 class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final categoryRepository = CategoryRepository();
 
   String? _selectedIcon;
 
-  bool isExpense = false;
+  Color randomColor = getRandomPastelColor();
 
   Future<void> _createCategory() async {
-    if (_formKey.currentState!.validate()) {
-      final category = ExpenseCategory(
-        name: _nameController.text.trim(),
-        iconName: _selectedIcon!,
-        id: Uuid().v4(),
-        color: null,
-        isExpense: isExpense,
-         createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-      );
-      debugPrint(category.toString());
-
-      try {
-        await categoryRepository.addCategory(category);
-        GoRouter.of(context).pop();
-      } catch (e) {
-        debugPrint('Error creating category: $e');
-      }
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    if (_nameController.text.trim().isEmpty || _selectedIcon == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a category name')),
+      );
+      return;
+    }
+
+    final category = ExpenseCategory(
+      name: _nameController.text.trim(),
+      iconName: _selectedIcon!,
+      id: Uuid().v4(),
+      color: randomColor.toARGB32(),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      isSynced: false,
+    );
+    debugPrint(category.toString());
+
+    try {
+      await CategoryRepository.instance.addCategory(category);
+      GoRouter.of(context).pop();
+    } catch (e) {
+      debugPrint('Error creating category: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.appTheme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Create Category'),
-        backgroundColor: Colors.white,
+        backgroundColor: context.appTheme.appBarTheme.backgroundColor,
         leading: IconButton(
           onPressed: () {
             GoRouter.of(context).pop();
@@ -59,7 +75,7 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
       ),
       body: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.appTheme.appBarTheme.backgroundColor,
           borderRadius: BorderRadius.circular(12),
 
           boxShadow: [
@@ -136,27 +152,44 @@ class _CreateCategoryScreenState extends State<CreateCategoryScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Expense'),
-                    Switch(
-                      value: isExpense,
-                      onChanged: (value) {
-                        setState(() {
-                          isExpense = value;
-                        });
-                      },
+                    const Text(
+                      'Color',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 18,
+                      ),
                     ),
-                  
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: randomColor,
+                      child: Icon(
+                        AppIcons.icons[_selectedIcon],
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
                   ],
                 ),
 
                 const SizedBox(height: 24),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _createCategory,
-                    child: const Text('Create Category'),
+                GestureDetector(
+                  onTap: _createCategory,
+                  child: Container(
+                    width: double.infinity,
+                    height: 50,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: context.appTheme.primaryColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Create Category',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ],

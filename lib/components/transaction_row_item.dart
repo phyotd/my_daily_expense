@@ -11,7 +11,7 @@ class TransactionRowItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isIncome = expense.category.isExpense == false;
+    final bool isIncome = expense.isExpense == false;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -19,26 +19,27 @@ class TransactionRowItem extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: expense.category.color?.withOpacity(0.12),
+          color: Color(expense.category?.color ?? 0),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: AppIcons.icons[expense.category.iconName] != null
+        child: AppIcons.icons[expense.category?.iconName] != null
             ? Icon(
-                AppIcons.icons[expense.category.iconName],
-                color: expense.category.color,
+                AppIcons.icons[expense.category?.iconName],
+                color: Colors.grey.shade300,
               )
             : const Icon(Icons.category, color: Colors.grey),
       ),
-
       title: Text(
-        expense.title,
+        expense.note == '' ? expense.category?.name ?? '' : expense.note,
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       ),
 
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Text(
-          dateFormatter.format(expense.createdAt?.toLocal() ?? DateTime.now()),
+          dateFormatter.format(
+            expense.expenseDate?.toLocal() ?? DateTime.now(),
+          ),
           style: TextStyle(color: Colors.grey.shade600),
         ),
       ),

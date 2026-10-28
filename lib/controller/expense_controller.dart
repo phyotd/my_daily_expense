@@ -4,16 +4,20 @@ import 'package:my_daily_expense/model/expense_model.dart';
 import 'package:my_daily_expense/repository/expense_repository.dart';
 
 class ExpenseController extends ChangeNotifier {
-  final ExpenseRepository repository;
-
-  ExpenseController(this.repository);
+  ExpenseController();
 
   List<ExpenseModel> expenses = [];
   StreamSubscription? _subscription;
 
   void startListening() {
-    _subscription = repository.watchExpenses().listen((data) {
-      expenses = data;
+    _subscription?.cancel();
+    _subscription = ExpenseRepository.instance.watchExpenses().listen((data) {
+      debugPrint("Expenses updated: ${data.length}");
+
+      expenses
+        ..clear()
+        ..addAll(data);
+
       notifyListeners();
     });
   }

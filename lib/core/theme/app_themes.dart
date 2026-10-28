@@ -9,7 +9,7 @@ class AppThemes {
       brightness: Brightness.light,
       primaryColor: Colors.deepPurple,
       scaffoldBackgroundColor: Colors.white,
-     
+
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -20,6 +20,7 @@ class AppThemes {
         titleMedium: TextStyle(color: Colors.black),
       ),
       cardColor: Colors.deepPurple,
+      dividerColor: Colors.grey.shade300,
     ),
 
     successColor: Colors.green,
@@ -41,6 +42,14 @@ class AppThemes {
         titleMedium: TextStyle(color: Colors.white),
       ),
       cardColor: Colors.deepPurple,
+      cardTheme: CardThemeData(
+        color: Colors.deepPurple,
+        margin: const EdgeInsets.all(8.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
+      dividerColor: Colors.grey.shade900,
     ),
 
     successColor: Colors.greenAccent,
